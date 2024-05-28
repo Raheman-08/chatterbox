@@ -1,0 +1,68 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chat { margin-bottom: 20px; }
+        #messages { list-style-type: none; padding: 0; }
+        #messages li { padding: 8px; border-bottom: 1px solid #ddd; }
+        #input { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="chat">
+        <ul id="messages"></ul>
+    </div>
+    <div id="input">
+        <input id="username" type="text" placeholder="Enter your username" autofocus>
+        <input id="message" type="text" placeholder="Type a message" autocomplete="off">
+        <button id="send">Send</button>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        document.getElementById('username').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                const username = e.target.value;
+                if (username) {
+                    socket.emit('join', username);
+                    e.target.disabled = true;
+                }
+            }
+        });
+
+        document.getElementById('send').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                const messageInput = document.getElementById('message');
+                const message = messageInput.value;
+                if (message) {
+                    socket.emit('chat message', message);
+                    messageInput.value = '';
+                }
+            }
+        });
+
+        document.getElementById('send').addEventListener('click', function () {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value;
+            if (message) {
+                socket.emit('chat message', message);
+                messageInput.value = '';
+            }
+        });
+
+        socket.on('message', function (msg) {
+            const messages = document.getElementById('messages');
+            const item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+</body>
+</html>
