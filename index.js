@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path')
+const moment = require('moment')
 
 const app = express();
 const server = http.createServer(app);
@@ -15,15 +16,15 @@ app.get('/', function (req, res, next) {
 app.use(express.static('public'));
 
 io.on('connection', (socket) => {
-    socket.on('join', (username) => {
-        console.log('Username => ', username);
-        socket.username = username;
-        io.emit('message', `${username} has joined the chat`);
+    socket.on('join', (data) => {
+        let joinData = JSON.parse(data)
+        socket.username = joinData.username;
+        io.emit('message', JSON.stringify({ ...joinData, type: 'notify' }));
     });
     
     socket.on('chat message', (msg) => {
-        console.log('msg => ', msg);
-        io.emit('message', `${socket.username}: ${msg}`);
+        let msgData = JSON.parse(msg)
+        io.emit('message', JSON.stringify({ type: 'chat', username: socket.username, ...msgData }));
     });
 
     socket.on('disconnect', () => {
